@@ -1,0 +1,127 @@
+================================================================================
+              PROYECTO PARQUEADERO - INSTRUCCIONES DE USO
+================================================================================
+
+DESCRIPCION
+-----------
+Sistema de parqueadero compuesto por:
+  1. Generador de placas (C++) - Cliente socket que envia placas cada 2-5 seg
+  2. Libreria dinamica (C++ DLL) - Servidor socket + logica de parqueo
+  3. Visualizador (Python) - Interfaz grafica que carga la DLL y muestra el
+     estado del parqueadero en tiempo real
+
+Cuando una placa llega por primera vez, se le asigna una celda (ENTRADA).
+Cuando la misma placa llega de nuevo, se libera esa celda (SALIDA).
+El parqueadero tiene 20 celdas.
+
+
+REQUISITOS
+----------
+  - Windows 10/11
+  - g++ (MinGW/MSYS2) en el PATH para compilar
+  - Python 3.x (con tkinter incluido, viene por defecto)
+
+
+ESTRUCTURA DE ARCHIVOS
+----------------------
+  parqueadero/
+  ├── src/
+  │   ├── parqueadero_lib.h         Header de la libreria
+  │   ├── parqueadero_lib.cpp       Codigo fuente de la DLL (servidor socket)
+  │   ├── generador.cpp             Codigo fuente del generador (cliente socket)
+  │   └── visualizador.py           Visualizador con interfaz grafica
+  ├── build/
+  │   ├── parqueadero_lib.dll       Libreria dinamica compilada
+  │   └── generador.exe             Generador de placas compilado
+  ├── compilar.bat                  Script para compilar todo
+  └── ejecutar.bat                  Script para ejecutar el sistema
+
+
+COMPILACION
+-----------
+Opcion A - Usar el script:
+  1. Abrir una terminal (cmd) en la carpeta parqueadero/
+  2. Ejecutar: compilar.bat
+
+Opcion B - Compilar manualmente:
+  1. Compilar la DLL:
+     g++ -shared -o build\parqueadero_lib.dll src\parqueadero_lib.cpp -lws2_32 -static -DBUILDING_DLL
+
+  2. Copiar la DLL junto al visualizador:
+     copy build\parqueadero_lib.dll src\parqueadero_lib.dll
+
+  3. Compilar el generador:
+     g++ -o build\generador.exe src\generador.cpp -lws2_32 -static
+
+NOTA: Los archivos ya vienen compilados en la carpeta build/. Solo es
+necesario recompilar si se modifica el codigo fuente.
+
+
+EJECUCION
+---------
+Opcion A - Usar el script:
+  1. Ejecutar: ejecutar.bat
+  2. Se abrira el visualizador. Hacer clic en "INICIAR SERVIDOR"
+  3. Presionar cualquier tecla en la terminal para lanzar el generador
+
+Opcion B - Ejecutar manualmente (requiere DOS terminales):
+
+  Terminal 1 - Visualizador:
+    1. Abrir terminal en la carpeta parqueadero/
+    2. Ejecutar: py src\visualizador.py
+    3. Se abre la ventana del visualizador
+    4. Hacer clic en el boton "INICIAR SERVIDOR"
+       (El servidor empieza a escuchar en el puerto 5000)
+
+  Terminal 2 - Generador:
+    1. Abrir OTRA terminal en la carpeta parqueadero/
+    2. Ejecutar: build\generador.exe
+    3. El generador se conecta y empieza a enviar placas
+
+  IMPORTANTE: Siempre iniciar primero el visualizador y hacer clic en
+  "INICIAR SERVIDOR" antes de ejecutar el generador.
+
+
+INTERFAZ DEL VISUALIZADOR
+--------------------------
+  - 20 celdas en cuadricula (4 filas x 5 columnas)
+  - Verde = celda libre
+  - Rojo  = celda ocupada (muestra placa y hora de entrada)
+  - Panel derecho = registro de eventos (entradas y salidas)
+  - Contador superior = celdas ocupadas / libres en tiempo real
+  - Boton "INICIAR SERVIDOR" = activa la escucha en puerto 5000
+  - Boton "DETENER SERVIDOR" = cierra la conexion
+
+
+COMUNICACION (PROTOCOLO)
+-------------------------
+  - Transporte: TCP socket en puerto 5000 (localhost)
+  - Formato del mensaje: PLACA|HORA\n
+    Ejemplo: ABC-123|14:30:05\n
+  - El generador (C++) es el CLIENTE que se conecta al servidor
+  - La libreria dinamica (C++ DLL) es el SERVIDOR que recibe las placas
+  - El visualizador (Python) carga la DLL con ctypes para leer los datos
+
+
+COMPONENTES TECNICOS
+--------------------
+  generador.cpp (Cliente C++):
+    - Genera un pool de 30 placas aleatorias formato ABC-123
+    - Envia una placa cada 2-5 segundos aleatorios
+    - 30% de probabilidad de repetir una placa (simula salida del carro)
+    - Se conecta via TCP a 127.0.0.1:5000
+
+  parqueadero_lib.dll (Servidor C++):
+    - Escucha conexiones TCP en puerto 5000
+    - Hilo dedicado para aceptar conexiones y recibir datos
+    - Gestiona 20 celdas con mutex (CriticalSection)
+    - Cola de eventos para comunicar con el visualizador
+    - Funciones exportadas: iniciar_servidor, detener_servidor,
+      obtener_evento, obtener_estado_celdas, obtener_celdas_ocupadas
+
+  visualizador.py (GUI Python):
+    - Carga parqueadero_lib.dll usando ctypes (libreria dinamica)
+    - Interfaz grafica con tkinter
+    - Actualiza el estado cada 500ms consultando la DLL
+    - Muestra entradas en verde y salidas en rojo en el log
+================================================================================
