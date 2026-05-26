@@ -4,7 +4,8 @@ Este proyecto es un sistema distribuido para la gestión y visualización en tie
 
 ## Integrantes del Grupo
 * **Yeison Andrés Echavarría Quintero**
-* **Sebastián**
+* **Sebastián galian**
+* **Yeisom Lopez**
 
 ---
 
