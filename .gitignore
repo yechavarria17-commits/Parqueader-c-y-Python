@@ -1,8 +1,8 @@
-# Compiled C++ files
-build/
-*.exe
-*.dll
-*.pyd
+# Compiled C++ files (commented to allow committing binaries)
+# build/
+# *.exe
+# *.dll
+# *.pyd
 *.o
 
 # SWIG generated files
