@@ -4,6 +4,8 @@ echo   COMPILACION - PROYECTO PARQUEADERO
 echo ============================================
 echo.
 
+set SWIG_OK=0
+
 if not exist build mkdir build
 
 echo [1/3] Compilando libreria dinamica base (parqueadero_lib.dll)...
@@ -49,6 +51,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 copy src\_parqueadero_lib_swig.pyd build\_parqueadero_lib_swig.pyd >nul
 copy src\parqueadero_lib_swig.py build\parqueadero_lib_swig.py >nul
+set SWIG_OK=1
 echo    OK (Modulo SWIG compilado exitosamente)
 
 :END_COMPILATION
@@ -60,7 +63,7 @@ echo.
 echo Archivos generados en 'build/':
 echo   build\parqueadero_lib.dll       (DLL para ctypes)
 echo   build\generador.exe             (Generador de placas)
-if exist src\_parqueadero_lib_swig.pyd (
+if %SWIG_OK%==1 (
     echo   build\_parqueadero_lib_swig.pyd  (Modulo compilado SWIG)
     echo   build\parqueadero_lib_swig.py   (Wrapper Python SWIG)
 )
